@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+*.egg-info/
+explore_data.py
+explore_data2.py
+test_phase0.py
+summarize.py
+test_prompts.py
