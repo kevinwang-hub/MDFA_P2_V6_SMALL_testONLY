@@ -59,6 +59,7 @@ Respond with ONLY this JSON:
     "formatting_cues": [{{"style": "<bold, italic, underline, superscript, colored text>", "represents": "<what it denotes>"}}],
     "notations_and_symbols": ["<footnote markers, asterisks, daggers, abbreviations, or other special symbols visible>"]
   }},
+  "scientific_conclusions": ["<Interpret the tabular data: What trends, comparisons, or standout results does the table reveal? Which material or condition performs best and why? Draw conclusions about structure-property relationships or optimal synthesis conditions based on the data AND context.>"],
   "notes": ["<...>"],
   "image_quality_issues": ["<cells that are unclear or partially obscured>"]
 }}"""

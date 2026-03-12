@@ -28,19 +28,26 @@ logger = logging.getLogger(__name__)
 
 
 def _find_content_list(paper_dir: str) -> str | None:
-    """Find the content_list_v2.json file in a paper directory (searches recursively)."""
+    """Find the content_list_v2.json file in a paper directory (searches recursively).
+    Prefers files containing 'content_list_v2' over plain 'content_list'."""
     p = Path(paper_dir)
+    candidates = []
     # Direct children first
     for f in p.iterdir():
         if f.is_file() and "content_list" in f.name and f.suffix == ".json":
-            return str(f)
+            candidates.append(str(f))
     # Recurse one level into subdirectories
-    for d in p.iterdir():
-        if d.is_dir():
-            for f in d.iterdir():
-                if f.is_file() and "content_list" in f.name and f.suffix == ".json":
-                    return str(f)
-    return None
+    if not candidates:
+        for d in p.iterdir():
+            if d.is_dir():
+                for f in d.iterdir():
+                    if f.is_file() and "content_list" in f.name and f.suffix == ".json":
+                        candidates.append(str(f))
+    if not candidates:
+        return None
+    # Prefer v2 over non-v2
+    v2 = [c for c in candidates if "content_list_v2" in c]
+    return v2[0] if v2 else candidates[0]
 
 
 def _find_images(paper_dir: str) -> list[str]:

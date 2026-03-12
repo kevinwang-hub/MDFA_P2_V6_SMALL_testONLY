@@ -54,6 +54,7 @@ Respond with ONLY this JSON:
     "line_styles": [{{"style": "<solid, dashed, dotted>", "represents": "<TGA vs DSC/DTA, different samples, etc.>"}}],
     "notations_and_symbols": ["<temperature annotations, mass% labels, arrows indicating decomposition events, or other symbols visible>"]
   }},
+  "scientific_conclusions": ["<Interpret the thermal data: What do the decomposition steps reveal about guest molecules, framework stability, and thermal robustness? What is the practical stability limit? Compare samples if multiple are shown. Draw conclusions about activation conditions, purity, and suitability for applications based on the data AND context.>"],
   "notes": ["<...>"],
   "image_quality_issues": ["<...>"]
 }}"""

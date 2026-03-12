@@ -6,6 +6,21 @@ from difflib import SequenceMatcher
 
 logger = logging.getLogger(__name__)
 
+FIGURE_ID_PATTERN = re.compile(
+    r"((?:Figure|Fig\.?|Scheme|Table|Chart)\s*S?\d+)", re.IGNORECASE
+)
+
+
+def _normalize_figure_id(raw: str) -> str:
+    """Normalize 'Fig. 3' / 'fig3' / 'Figure 3' → 'Figure 3'."""
+    m = re.match(r"(Figure|Fig\.?|Scheme|Table|Chart)\s*S?(\d+)", raw, re.IGNORECASE)
+    if not m:
+        return raw
+    kind = m.group(1).rstrip(".")
+    kind_map = {"fig": "Figure", "figure": "Figure", "scheme": "Scheme", "table": "Table", "chart": "Chart"}
+    normalized_kind = kind_map.get(kind.lower(), kind.capitalize())
+    return f"{normalized_kind} {m.group(2)}"
+
 
 def match_caption(
     image_filename: str, caption_map: dict[str, str]

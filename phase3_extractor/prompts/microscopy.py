@@ -69,6 +69,7 @@ Respond with ONLY this JSON:
     "shape_mapping": [{{"shape": "<marker/symbol/annotation shape>", "represents": "<what it denotes>"}}],
     "notations_and_symbols": ["<scale bars, panel labels, arrows, circles highlighting features, inset labels, or other annotations visible>"]
   }},
+  "scientific_conclusions": ["<Interpret the morphology: What do crystal shape, size, uniformity, and surface features reveal about synthesis quality, growth conditions, or phase purity? Compare panels if multiple are shown (e.g., before/after treatment). Draw conclusions about crystallinity, defects, or structural integrity based on the data AND context.>"],
   "notes": ["<...>"],
   "image_quality_issues": ["<...>"]
 }}"""

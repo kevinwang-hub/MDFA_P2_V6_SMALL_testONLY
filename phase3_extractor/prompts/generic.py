@@ -30,6 +30,7 @@ Respond with ONLY this JSON:
     }}
   ],
   "relevance_to_MOF_synthesis": "<description of any synthesis-relevant information>",
+  "scientific_conclusions": ["<Interpret the data: What does this figure demonstrate or prove in the context of the paper? What conclusions can be drawn about the material's properties, performance, or significance? Go beyond description — explain what the data means.>"],
   "notes": ["<...>"],
   "image_quality_issues": ["<...>"]
 }}"""

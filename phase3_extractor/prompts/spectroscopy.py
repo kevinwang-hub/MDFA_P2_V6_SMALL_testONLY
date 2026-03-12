@@ -52,6 +52,7 @@ Respond with ONLY this JSON:
     "line_styles": [{{"style": "<solid, dashed, dotted>", "represents": "<different sample or measurement condition>"}}],
     "notations_and_symbols": ["<peak labels, chemical group annotations, arrows, asterisks, or other special symbols visible>"]
   }},
+  "scientific_conclusions": ["<Interpret the spectra: What do the peaks and their shifts confirm about bond formation, coordination, guest inclusion, or chemical identity? Compare spectra if multiple samples are shown — what changes occurred and why? Draw conclusions about synthesis success, purity, or chemical transformation based on the data AND context.>"],
   "notes": ["<...>"],
   "image_quality_issues": ["<...>"]
 }}"""

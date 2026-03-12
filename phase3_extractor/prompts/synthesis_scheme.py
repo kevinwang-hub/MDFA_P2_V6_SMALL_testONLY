@@ -79,6 +79,7 @@ Respond with ONLY this JSON:
     "shape_mapping": [{{"shape": "<icon, arrow type, box, or symbol shape>", "represents": "<reaction step, intermediate, or meaning>"}}],
     "notations_and_symbols": ["<reaction arrows, plus signs, temperature/time annotations, structural diagrams, abbreviations, or other symbols visible>"]
   }},
+  "scientific_conclusions": ["<Interpret the synthesis scheme: What is the overall strategy (e.g., one-pot, stepwise, post-synthetic modification)? Why were specific conditions chosen? What do the reagent choices and conditions reveal about the expected product properties? Draw conclusions about yield, scalability, or novelty based on the data AND context.>"],
   "notes": ["<any additional observations, unusual conditions, or important details>"],
   "image_quality_issues": ["<any parts of the image that are unclear, cut off, or hard to read>"]
 }}"""

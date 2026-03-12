@@ -22,9 +22,10 @@ from models.gemma_vl import GemmaVLClient
 from models.qwen_text import QwenTextClient
 from utils.io_utils import save_json, load_json
 
-PAPER_DIR = os.path.expanduser(
+DEFAULT_PAPER_DIR = os.path.expanduser(
     "~/Documents/MOF/test_parsed_output/source/test_6_science.1152516/science.1152516/hybrid_auto/"
 )
+PAPER_DIR = sys.argv[3] if len(sys.argv) > 3 else DEFAULT_PAPER_DIR
 IMAGE_NAME = sys.argv[1] if len(sys.argv) > 1 else "db701208d417c1d16f203c8e35efb275eff8ef6877f11cf393c53bf7dc7cf1a4.jpg"
 OUTPUT_PATH = sys.argv[2] if len(sys.argv) > 2 else os.path.expanduser("~/Downloads/mof_extraction_db7012.json")
 

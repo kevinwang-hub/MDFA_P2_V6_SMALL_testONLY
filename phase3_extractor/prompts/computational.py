@@ -48,6 +48,7 @@ Respond with ONLY this JSON:
     "shape_mapping": [{{"shape": "<isosurface, arrow, sphere, lobe, etc.>", "represents": "<what it denotes>"}}],
     "notations_and_symbols": ["<energy values, axis labels, Fermi level markers, symmetry point labels, or other symbols visible>"]
   }},
+  "scientific_conclusions": ["<Interpret the computational results: What do the calculated properties (band gap, binding energy, charge distribution, etc.) reveal about the material's electronic structure or adsorption behavior? How well do simulations match experiments? Draw conclusions about mechanism, design principles, or predictions based on the data AND context.>"],
   "notes": ["<...>"],
   "image_quality_issues": ["<...>"]
 }}"""

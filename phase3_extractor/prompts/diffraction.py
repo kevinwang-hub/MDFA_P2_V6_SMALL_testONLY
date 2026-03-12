@@ -52,6 +52,7 @@ Respond with ONLY this JSON:
     "line_styles": [{{"style": "<solid, dashed, dotted>", "represents": "<simulated vs experimental, different samples, etc.>"}}],
     "notations_and_symbols": ["<hkl tick marks, asterisks for impurity peaks, arrows, or other special symbols visible>"]
   }},
+  "scientific_conclusions": ["<Interpret the data: What do the patterns reveal about crystallinity, phase purity, structural stability, or successful synthesis? Compare patterns if multiple samples are shown — do they match, diverge, or show degradation? Draw conclusions based on the data AND context.>"],
   "notes": ["<...>"],
   "image_quality_issues": ["<...>"]
 }}"""

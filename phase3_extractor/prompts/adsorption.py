@@ -71,6 +71,7 @@ Respond with ONLY this JSON:
     "line_styles": [{{"style": "<solid, dashed, dotted>", "represents": "<what it denotes>"}}],
     "notations_and_symbols": ["<math notations, chemical formulas, abbreviations, arrows, or other special symbols visible>"]
   }},
+  "scientific_conclusions": ["<Interpret the data: What does the isotherm shape reveal about porosity type (micro/meso/macro)? What do the uptake values and hysteresis indicate about the material's performance? Compare samples if multiple are shown. Draw conclusions about surface area, pore structure, selectivity, or stability based on the data AND context.>"],
   "notes": ["<...>"],
   "image_quality_issues": ["<...>"]
 }}"""

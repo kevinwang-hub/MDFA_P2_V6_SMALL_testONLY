@@ -56,6 +56,7 @@ Respond with ONLY this JSON:
     "shape_mapping": [{{"shape": "<sphere, polyhedron, stick, wireframe, etc.>", "represents": "<what atom/bond/unit it denotes>"}}],
     "notations_and_symbols": ["<axis labels, Miller indices, distance annotations, angle annotations, or other symbols visible>"]
   }},
+  "scientific_conclusions": ["<Interpret the structure: What does the coordination geometry, topology, and pore architecture reveal about the material's properties? How do the structural features relate to potential applications (gas storage, catalysis, separation)? Draw conclusions based on the data AND context.>"],
   "notes": ["<...>"],
   "image_quality_issues": ["<...>"]
 }}"""
