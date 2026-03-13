@@ -1,7 +1,8 @@
-"""Paper-level aggregation of verified extractions via Qwen 4B."""
+"""Paper-level aggregation of verified extractions via Qwen3.5 9B."""
 
 import json
 import logging
+from pathlib import Path
 
 from config import AGGREGATION_MAX_TOKENS, EXTRACTION_TEMPERATURE
 from models.qwen_text import QwenTextClient
@@ -9,8 +10,9 @@ from utils.io_utils import parse_json_response
 
 logger = logging.getLogger(__name__)
 
+# ── System prompt (no /no_think — think=False is set in the API call) ──
 SYSTEM_PROMPT = """\
-You are an expert materials chemist who synthesizes information from multiple analytical
+You are an expert materials chemist who synthesizes information from multiple analytical \
 techniques to build comprehensive records of MOF/COF/ZIF materials reported in research papers.
 
 You receive verified extractions from multiple figures/tables in a single paper.
@@ -147,6 +149,80 @@ Respond with ONLY this JSON:
   ]
 }}"""
 
+# Maximum chars for paper_context_summary sent to the model (~1K tokens)
+MAX_CONTEXT_CHARS = 4000
+# Maximum chars for all_extractions_json sent to the model
+MAX_EXTRACTIONS_CHARS = 20000
+
+# Keys to keep when stripping extractions for the prompt
+_KEEP_KEYS = {
+    "image_id", "image_path", "classification", "primary_type",
+    "figure_id", "extracted_data", "verified_data", "corrected_extraction",
+    "key_findings", "materials", "synthesis_conditions", "measurements",
+}
+
+
+def _slim_extraction(ext: dict) -> dict:
+    """Strip an extraction dict to only prompt-relevant keys."""
+    slim = {}
+    for k, v in ext.items():
+        if k.startswith("_"):
+            continue
+        if k in _KEEP_KEYS or not isinstance(v, (dict, list)):
+            slim[k] = v
+    # Flatten: prefer verified_data > corrected_extraction > extracted_data
+    data = slim.pop("verified_data", None) or slim.pop("corrected_extraction", None) or slim.pop("extracted_data", None)
+    if data:
+        slim["data"] = data
+    return slim
+
+
+def fallback_synthesis(extractions: list[dict], paper_metadata: dict) -> dict:
+    """Assemble valid output from Phase 4 results without LLM."""
+    figures = []
+    for ext in extractions:
+        figures.append({
+            "image_id": ext.get("_image_path", ext.get("image_id", "")),
+            "classification": ext.get("primary_type", ext.get("classification", "")),
+            "extracted_data": ext.get("verified_data",
+                              ext.get("corrected_extraction",
+                              ext.get("extracted_data", {}))),
+        })
+    return {
+        "_fallback": True,
+        "paper_info": {
+            "title": paper_metadata.get("title", ""),
+            "doi": paper_metadata.get("doi", ""),
+            "journal": paper_metadata.get("journal", ""),
+            "year": None,
+            "paper_type": None,
+        },
+        "materials_reported": [],
+        "figures": figures,
+        "cross_figure_conflicts": [],
+        "data_gaps": [],
+    }
+
+
+def _is_mostly_null(result: dict) -> bool:
+    """Return True if the result is essentially empty / all nulls."""
+    if not result or result.get("_parse_error"):
+        return True
+    materials = result.get("materials_reported", [])
+    if not materials:
+        return False  # empty materials list is still valid (might be correct)
+    # Check if every material has no real data
+    null_count = 0
+    total = 0
+    for mat in materials:
+        for k, v in mat.items():
+            total += 1
+            if v is None or v == "" or v == [] or v == {}:
+                null_count += 1
+    if total > 0 and null_count / total > 0.8:
+        return True
+    return False
+
 
 class Aggregator:
     """Aggregate verified extractions into a paper-level record."""
@@ -162,14 +238,7 @@ class Aggregator:
     ) -> dict:
         """
         Compile all verified extractions into a unified paper record.
-
-        Args:
-            verified_extractions: List of Phase 4 verified extraction dicts.
-            paper_metadata: Dict with title, authors, doi, journal.
-            paper_context_summary: Concatenated key paper sections.
-
-        Returns:
-            Paper-level aggregation dict.
+        Falls back to programmatic assembly if the LLM fails.
         """
         logger.info(
             "Aggregating %d extractions for: %s",
@@ -177,15 +246,17 @@ class Aggregator:
             paper_metadata.get("title", "unknown"),
         )
 
-        # Strip internal metadata from extractions before sending to model
-        clean_extractions = []
-        for ext in verified_extractions:
-            clean = {k: v for k, v in ext.items() if not k.startswith("_")}
-            clean_extractions.append(clean)
+        # ── Strip extractions to prompt-relevant data only ──
+        clean_extractions = [_slim_extraction(ext) for ext in verified_extractions]
+        all_extractions_json = json.dumps(clean_extractions, indent=1, ensure_ascii=False)
+        # Truncate if still too big
+        if len(all_extractions_json) > MAX_EXTRACTIONS_CHARS:
+            all_extractions_json = all_extractions_json[:MAX_EXTRACTIONS_CHARS] + "\n... (truncated)"
 
-        all_extractions_json = json.dumps(
-            clean_extractions, indent=2, ensure_ascii=False
-        )
+        # ── Cap context summary ──
+        ctx = paper_context_summary
+        if len(ctx) > MAX_CONTEXT_CHARS:
+            ctx = ctx[:MAX_CONTEXT_CHARS] + "\n... (truncated)"
 
         user_prompt = USER_PROMPT_TEMPLATE.format(
             title=paper_metadata.get("title", ""),
@@ -193,32 +264,48 @@ class Aggregator:
             doi=paper_metadata.get("doi", ""),
             journal=paper_metadata.get("journal", ""),
             all_extractions_json=all_extractions_json,
-            paper_context_summary=paper_context_summary,
+            paper_context_summary=ctx,
         )
 
-        response = self.client.generate(
-            system=SYSTEM_PROMPT,
-            user=user_prompt,
-            temperature=EXTRACTION_TEMPERATURE,
-            max_tokens=AGGREGATION_MAX_TOKENS,
-        )
+        # ── Debug: prompt size ──
+        full_prompt = SYSTEM_PROMPT + user_prompt
+        print(f"[Phase5 DEBUG] Prompt: {len(full_prompt)} chars / ~{len(full_prompt)//4} tokens")
+        logger.info("[Phase5] Prompt size: %d chars / ~%d tokens", len(full_prompt), len(full_prompt) // 4)
 
-        result = parse_json_response(response)
-
-        # Retry once if parsing failed
-        if result.get("_parse_error"):
-            logger.warning("Retrying aggregation (JSON parse failure)")
-            retry_prompt = (
-                user_prompt
-                + "\n\nIMPORTANT: Your previous response was not valid JSON. "
-                "Output ONLY the JSON object, no markdown, no explanation."
-            )
+        try:
             response = self.client.generate(
                 system=SYSTEM_PROMPT,
-                user=retry_prompt,
+                user=user_prompt,
                 temperature=EXTRACTION_TEMPERATURE,
                 max_tokens=AGGREGATION_MAX_TOKENS,
             )
+
+            logger.info("[Phase5] Raw response length: %d chars", len(response))
             result = parse_json_response(response)
 
-        return result
+            # Retry once if parsing failed
+            if result.get("_parse_error"):
+                logger.warning("Retrying aggregation (JSON parse failure)")
+                retry_prompt = (
+                    user_prompt
+                    + "\n\nIMPORTANT: Your previous response was not valid JSON. "
+                    "Output ONLY the JSON object, no markdown, no explanation."
+                )
+                response = self.client.generate(
+                    system=SYSTEM_PROMPT,
+                    user=retry_prompt,
+                    temperature=EXTRACTION_TEMPERATURE,
+                    max_tokens=AGGREGATION_MAX_TOKENS,
+                )
+                result = parse_json_response(response)
+
+            # Check if result is effectively empty
+            if _is_mostly_null(result):
+                logger.warning("[Phase5] LLM output is mostly null — using fallback")
+                return fallback_synthesis(verified_extractions, paper_metadata)
+
+            return result
+
+        except Exception:
+            logger.exception("[Phase5] LLM aggregation failed — using fallback")
+            return fallback_synthesis(verified_extractions, paper_metadata)

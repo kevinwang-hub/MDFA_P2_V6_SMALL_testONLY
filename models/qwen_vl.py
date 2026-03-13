@@ -61,7 +61,16 @@ class QwenVLClient(VLMClient):
                     temperature=temperature,
                     max_tokens=max_tokens,
                 )
-                return response.choices[0].message.content
+                msg = response.choices[0].message
+                content = msg.content or ""
+                # Qwen3 models use thinking/reasoning mode by default.
+                # If content is empty, try the reasoning field.
+                if not content.strip():
+                    reasoning = getattr(msg, "reasoning", None) or getattr(msg, "reasoning_content", None) or ""
+                    if reasoning.strip():
+                        logger.info("Using reasoning field as content (thinking model)")
+                        content = reasoning
+                return content
             except (openai.APIConnectionError, openai.APITimeoutError, openai.InternalServerError) as exc:
                 last_error = exc
                 wait = RETRY_BACKOFF_BASE ** attempt

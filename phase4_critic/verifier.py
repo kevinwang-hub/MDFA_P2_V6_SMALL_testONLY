@@ -27,10 +27,27 @@ USER_PROMPT_TEMPLATE = """\
 === PAPER CONTEXT ===
 {context}
 
-=== EXTRACTION TO VERIFY ===
+=== FREE EXTRACTION (model's unconstrained analysis) ===
+{free_extraction_text}
+
+=== STRUCTURED EXTRACTION (organized JSON) ===
 {extraction_json}
 
-Carefully re-examine the image and verify the extraction above.
+You have TWO versions of the extraction:
+1. The free extraction: unconstrained text analysis (often more complete)
+2. The structured extraction: organized JSON (may have lost information)
+
+Check for:
+- Information present in free extraction but MISSING from structured extraction
+- Numbers or parameters that were correctly identified in free extraction
+  but incorrectly structured or omitted in the JSON
+- If the free extraction mentions dual y-axes but the structured extraction
+  only captures one axis
+- If embedded parameters/equations in the free extraction are missing from
+  structured extraction's "embedded_parameters" array
+
+Carefully re-examine the image and verify BOTH extractions above.
+Your corrected_extraction should restore any information that was lost during structuring.
 Respond with ONLY this JSON:
 
 {{
@@ -97,6 +114,7 @@ class Verifier:
         image_path: str,
         extraction: dict,
         context: dict,
+        free_extraction_text: str = "",
     ) -> dict:
         """
         Verify an extraction against the original image and paper context.
@@ -105,6 +123,7 @@ class Verifier:
             image_path: Path to the image file.
             extraction: Output from Phase 3 extractor.
             context: Output from Phase 2 context assembler.
+            free_extraction_text: Optional Stage 1 free-form text (for two-stage pipeline).
 
         Returns:
             Verification result dict with field-level assessments and
@@ -119,8 +138,13 @@ class Verifier:
         }
         extraction_json = json.dumps(extraction_for_review, indent=2, ensure_ascii=False)
 
+        # If no free extraction text provided, generate a brief summary from the structured extraction
+        if not free_extraction_text:
+            free_extraction_text = "(No separate free-form extraction available — structured extraction only)"
+
         user_prompt = USER_PROMPT_TEMPLATE.format(
             context=context["assembled_prompt_context"],
+            free_extraction_text=free_extraction_text,
             extraction_json=extraction_json,
         )
 

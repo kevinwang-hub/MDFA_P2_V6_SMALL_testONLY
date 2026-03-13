@@ -21,7 +21,7 @@ from phase1_scout.router import Router
 from phase2_context.context_assembler import ContextAssembler
 from phase3_extractor.extractor import Extractor
 from phase4_critic.verifier import Verifier
-from phase5_synthesizer.aggregator import Aggregator
+from phase5_synthesizer.aggregator import Aggregator, fallback_synthesis
 from utils.io_utils import load_json, save_json
 
 logger = logging.getLogger(__name__)
@@ -298,7 +298,11 @@ class PaperPipeline:
                 # Phase 4: Verification
                 verified = {}
                 if (only_phase is None or only_phase == 4) and 4 not in skip_phases:
-                    verified = self.verifier.verify(img_path, extraction, context)
+                    free_text = extraction.get("_free_text", "")
+                    verified = self.verifier.verify(
+                        img_path, extraction, context,
+                        free_extraction_text=free_text,
+                    )
                     if SAVE_INTERMEDIATE:
                         save_json(
                             verified,
@@ -320,6 +324,9 @@ class PaperPipeline:
                 final_extraction = corrected if corrected else extraction
                 final_extraction["_figure_id"] = context.get("figure_id")
                 final_extraction["_image_path"] = img_path
+                # Preserve Stage 1 free-form text from two-stage extraction
+                if "_free_text" not in final_extraction and "_free_text" in extraction:
+                    final_extraction["_free_text"] = extraction["_free_text"]
                 verified_extractions.append(final_extraction)
 
             except Exception:
@@ -340,24 +347,41 @@ class PaperPipeline:
                 if dry_run:
                     logger.info("[DRY RUN] Would aggregate %d extractions", len(verified_extractions))
                 else:
-                    paper_metadata = _extract_paper_metadata(items)
+                    try:
+                        paper_metadata = _extract_paper_metadata(items)
 
-                    # Build context summary from key sections
-                    key_sections = ["abstract", "experimental", "results", "discussion"]
-                    context_parts = []
-                    for chunk in chunks:
-                        if chunk["section_type"] in key_sections:
-                            context_parts.append(chunk["text"])
-                    paper_context_summary = "\n\n".join(context_parts[:20])  # limit
+                        # Build context summary from key sections (capped at ~1K tokens)
+                        key_sections = ["abstract", "experimental", "results", "discussion"]
+                        context_parts = []
+                        total_len = 0
+                        for chunk in chunks:
+                            if chunk["section_type"] in key_sections:
+                                text = chunk["text"]
+                                if total_len + len(text) > 4000:
+                                    text = text[:4000 - total_len]
+                                    context_parts.append(text)
+                                    break
+                                context_parts.append(text)
+                                total_len += len(text)
+                        paper_context_summary = "\n\n".join(context_parts)
 
-                    paper_summary = self.aggregator.aggregate(
-                        verified_extractions, paper_metadata, paper_context_summary,
-                    )
-                    if SAVE_INTERMEDIATE:
-                        save_json(
-                            paper_summary,
-                            os.path.join(extractions_dir, "phase5_paper_summary.json"),
+                        paper_summary = self.aggregator.aggregate(
+                            verified_extractions, paper_metadata, paper_context_summary,
                         )
+                        if SAVE_INTERMEDIATE:
+                            save_json(
+                                paper_summary,
+                                os.path.join(extractions_dir, "phase5_paper_summary.json"),
+                            )
+                    except Exception:
+                        logger.exception("Phase 5 aggregation failed — using fallback")
+                        paper_metadata = _extract_paper_metadata(items)
+                        paper_summary = fallback_synthesis(verified_extractions, paper_metadata)
+                        if SAVE_INTERMEDIATE:
+                            save_json(
+                                paper_summary,
+                                os.path.join(extractions_dir, "phase5_paper_summary.json"),
+                            )
             else:
                 logger.warning("No verified extractions to aggregate.")
 

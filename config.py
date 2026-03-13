@@ -4,7 +4,7 @@ Override via environment variables.
 
 MODEL SERVING:
 Models are served via Ollama with OpenAI-compatible API on port 11434.
-Available: qwen3-vl:4b, gemma3:4b, qwen:4b
+Available: qwen3-vl:4b, gemma3:4b, qwen3.5:9b
 """
 
 import os
@@ -18,7 +18,7 @@ QWEN_TEXT_ENDPOINT = os.getenv("QWEN_TEXT_ENDPOINT", OLLAMA_BASE_URL)
 # Model names (as registered in Ollama)
 QWEN_VL_MODEL = os.getenv("QWEN_VL_MODEL", "qwen3-vl:4b")
 GEMMA_VL_MODEL = os.getenv("GEMMA_VL_MODEL", "gemma3:4b")
-QWEN_TEXT_MODEL = os.getenv("QWEN_TEXT_MODEL", "qwen:4b")
+QWEN_TEXT_MODEL = os.getenv("QWEN_TEXT_MODEL", "qwen3.5:9b")
 
 # Retrieval settings
 BM25_TOP_K = 5
@@ -28,7 +28,7 @@ CONTEXT_TOKEN_BUDGET = 3000  # approximate, 4 chars ≈ 1 token
 EXTRACTION_TEMPERATURE = 0.1
 EXTRACTION_MAX_TOKENS = 4096
 VERIFICATION_MAX_TOKENS = 6144  # larger because it includes corrected extraction
-AGGREGATION_MAX_TOKENS = 8192
+AGGREGATION_MAX_TOKENS = 8192  # full JSON schema needs room for detailed output
 
 # Image processing
 MAX_IMAGE_DIMENSION = 2048  # resize if larger (preserve aspect ratio)
