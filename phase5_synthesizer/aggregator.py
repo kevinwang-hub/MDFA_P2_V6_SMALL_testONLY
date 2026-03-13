@@ -1,4 +1,4 @@
-"""Paper-level aggregation of verified extractions via Qwen2.5-32B-Instruct."""
+"""Paper-level aggregation of verified extractions via Qwen 4B."""
 
 import json
 import logging

@@ -1,4 +1,4 @@
-"""Qwen2.5-VL-7B Vision-Language client via OpenAI-compatible API (vLLM)."""
+"""Qwen3-VL-4B Vision-Language client via OpenAI-compatible API (Ollama)."""
 
 import logging
 import time
@@ -12,11 +12,11 @@ logger = logging.getLogger(__name__)
 
 MAX_RETRIES = 3
 RETRY_BACKOFF_BASE = 2  # seconds
-TIMEOUT = 300  # 5 min — 7B vision model on local hardware
+TIMEOUT = 300  # 5 min — 4B vision model on local hardware
 
 
 class QwenVLClient(VLMClient):
-    """Client for Qwen2.5-VL-7B served via vLLM."""
+    """Client for Qwen3-VL-4B served via Ollama."""
 
     def __init__(
         self,

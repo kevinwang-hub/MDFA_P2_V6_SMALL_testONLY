@@ -1,4 +1,4 @@
-"""Gemma 3 27B Vision-Language client via OpenAI-compatible API (vLLM)."""
+"""Gemma 3 4B Vision-Language client via OpenAI-compatible API (Ollama)."""
 
 import logging
 import time
@@ -12,11 +12,11 @@ logger = logging.getLogger(__name__)
 
 MAX_RETRIES = 3
 RETRY_BACKOFF_BASE = 2  # seconds
-TIMEOUT = 600  # 10 min — 27B vision model is slow on local hardware
+TIMEOUT = 300  # 5 min — 4B vision model on local hardware
 
 
 class GemmaVLClient(VLMClient):
-    """Client for Gemma 3 27B served via vLLM."""
+    """Client for Gemma 3 4B served via Ollama."""
 
     def __init__(
         self,

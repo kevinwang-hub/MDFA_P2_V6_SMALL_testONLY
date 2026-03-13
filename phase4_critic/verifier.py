@@ -1,4 +1,4 @@
-"""Verification of extractions via Gemma 3 27B (different prompt, same weights)."""
+"""Verification of extractions via Gemma 3 4B (different prompt, same weights)."""
 
 import json
 import logging

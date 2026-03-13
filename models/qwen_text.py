@@ -1,4 +1,4 @@
-"""Qwen2.5-32B-Instruct text-only client via OpenAI-compatible API (vLLM)."""
+"""Qwen 4B text-only client via OpenAI-compatible API (Ollama)."""
 
 import logging
 import time
@@ -12,11 +12,11 @@ logger = logging.getLogger(__name__)
 
 MAX_RETRIES = 3
 RETRY_BACKOFF_BASE = 2  # seconds
-TIMEOUT = 600  # 10 min — 32B text model on local hardware
+TIMEOUT = 300  # 5 min — 4B text model on local hardware
 
 
 class QwenTextClient(LLMClient):
-    """Client for Qwen2.5-32B-Instruct served via vLLM."""
+    """Client for Qwen 4B served via Ollama."""
 
     def __init__(
         self,

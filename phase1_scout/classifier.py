@@ -1,4 +1,4 @@
-"""Image classification via Qwen2.5-VL-7B."""
+"""Image classification via Qwen3-VL-4B."""
 
 import logging
 
@@ -58,7 +58,7 @@ Relevance to synthesis scoring:
 
 
 class ImageClassifier:
-    """Classify scientific images using Qwen2.5-VL-7B."""
+    """Classify scientific images using Qwen3-VL-4B."""
 
     def __init__(self, client: QwenVLClient | None = None):
         self.client = client or QwenVLClient()

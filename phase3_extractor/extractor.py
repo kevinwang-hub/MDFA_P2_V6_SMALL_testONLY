@@ -1,4 +1,4 @@
-"""Dispatch extraction to type-specific prompts via Gemma 3 27B (or Qwen VL)."""
+"""Dispatch extraction to type-specific prompts via Gemma 3 4B (or Qwen VL)."""
 
 import logging
 
@@ -50,7 +50,7 @@ class Extractor:
         image_path: str,
         classification: dict,
         context: dict,
-        model: str = "gemma3_27b",
+        model: str = "gemma3_4b",
     ) -> dict:
         """
         Run type-specific extraction on an image.
@@ -59,7 +59,7 @@ class Extractor:
             image_path: Path to the image file.
             classification: Output from Phase 1 classifier.
             context: Output from Phase 2 context assembler.
-            model: Which model to use ("gemma3_27b" or "qwen_vl_7b").
+            model: Which model to use ("gemma3_4b" or "qwen_vl_4b").
 
         Returns:
             Parsed extraction dict with _metadata attached.
@@ -70,7 +70,7 @@ class Extractor:
         system_prompt = prompt_builder.system_prompt()
         user_prompt = prompt_builder.user_prompt(context["assembled_prompt_context"])
 
-        client = self.gemma_client if model == "gemma3_27b" else self.qwen_vl_client
+        client = self.gemma_client if model == "gemma3_4b" else self.qwen_vl_client
         image_b64 = load_image_as_base64(image_path)
 
         logger.info("Extracting %s with prompt=%s model=%s", image_path, prompt_key, model)

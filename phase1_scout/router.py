@@ -77,8 +77,8 @@ class Router:
                 relevance,
             )
 
-        # Rules 3-4: Model selection (Config A always uses gemma3_27b)
-        # The branch exists so you can swap to qwen_vl_7b later for budget mode
-        routing["extraction_model"] = "gemma3_27b"
+        # Rules 3-4: Model selection (Config B uses gemma3_4b)
+        # The branch exists so you can swap to qwen_vl_4b later
+        routing["extraction_model"] = "gemma3_4b"
 
         return routing

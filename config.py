@@ -4,7 +4,7 @@ Override via environment variables.
 
 MODEL SERVING:
 Models are served via Ollama with OpenAI-compatible API on port 11434.
-Available: qwen2.5vl:7b, gemma3:27b, qwen2.5:32b-instruct
+Available: qwen3-vl:4b, gemma3:4b, qwen:4b
 """
 
 import os
@@ -16,9 +16,9 @@ GEMMA_VL_ENDPOINT = os.getenv("GEMMA_VL_ENDPOINT", OLLAMA_BASE_URL)
 QWEN_TEXT_ENDPOINT = os.getenv("QWEN_TEXT_ENDPOINT", OLLAMA_BASE_URL)
 
 # Model names (as registered in Ollama)
-QWEN_VL_MODEL = os.getenv("QWEN_VL_MODEL", "qwen2.5vl:7b")
-GEMMA_VL_MODEL = os.getenv("GEMMA_VL_MODEL", "gemma3:27b")
-QWEN_TEXT_MODEL = os.getenv("QWEN_TEXT_MODEL", "qwen2.5:32b-instruct")
+QWEN_VL_MODEL = os.getenv("QWEN_VL_MODEL", "qwen3-vl:4b")
+GEMMA_VL_MODEL = os.getenv("GEMMA_VL_MODEL", "gemma3:4b")
+QWEN_TEXT_MODEL = os.getenv("QWEN_TEXT_MODEL", "qwen:4b")
 
 # Retrieval settings
 BM25_TOP_K = 5
